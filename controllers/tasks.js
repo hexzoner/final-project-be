@@ -44,6 +44,9 @@ export const updateTask = asyncHandler(async (req, res, next) => {
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
 
+  const foundArea = await Area.findById(area);
+  if (!foundArea) throw new ErrorResponse("Area doesnt exist", 404);
+
   const task = await Task.findById(id);
   if (!task) throw new ErrorResponse("Task doesnt exist", 404);
 
