@@ -2,10 +2,11 @@ import Joi from "joi";
 
 export const userSchema = {
   POST: Joi.object({
-    firstName: Joi.string().required(),
-    lastName: Joi.string().required(),
+    firstName: Joi.string().optional(),
+    lastName: Joi.string().optional(),
     email: Joi.string().required(),
     password: Joi.string().alphanum().min(8).max(12).required(),
+    role: Joi.string().alphanum().required(),
   }),
   LOGIN: Joi.object({
     email: Joi.string().required(),

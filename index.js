@@ -2,6 +2,7 @@ import "./db/index.js";
 import express from "express";
 import cors from "cors";
 import errorHandler from "./middleware/errorHandler.js";
+import authRouter from "./routes/authRouter.js";
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -9,6 +10,7 @@ const port = process.env.PORT || 8000;
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 
+app.use("/auth", authRouter);
 app.use("*", (req, res) => res.status(404).json({ error: "Not found" }));
 app.use(errorHandler);
 
