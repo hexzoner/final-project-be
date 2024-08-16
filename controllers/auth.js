@@ -37,5 +37,7 @@ export const me = asyncHandler(async (req, res, next) => {
   const user = await User.findById(userId);
 
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
-  res.json({ user: { id: user._id, firstName: user.firstName, lastName: user.lastName, email: user.email } });
+  res.json({ user: { id: user._id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role } });
 });
+
+export const getUsers = asyncHandler(async (req, res, next) => {});
