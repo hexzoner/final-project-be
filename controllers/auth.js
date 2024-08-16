@@ -10,6 +10,7 @@ export const signUp = asyncHandler(async (req, res, next) => {
   } = req;
   const found = await User.findOne({ email });
   if (found) throw new ErrorResponse("Email is already registered!", 409);
+  if (role != "admin") throw new ErrorResponse("Only admin role can signup", 401);
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = await User.create({ firstName, lastName, email, password: hashedPassword, role });

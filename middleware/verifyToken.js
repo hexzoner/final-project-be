@@ -13,6 +13,7 @@ const verifyTokenMiddleware = (req, res, next) => {
     if (!payload) throw new ErrorResponse("Invalid token", 400);
 
     req.userId = payload.userId; // Create custom property in request object
+    req.userRole = payload.role; // Create custom property in request object
     next(); // Call next handler
   } catch (e) {
     next(e);

@@ -65,6 +65,7 @@ export const deleteArea = asyncHandler(async (req, res, next) => {
   const userId = req.userId;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
+  if (user.role != "admin") throw new ErrorResponse("Not authorized - only admin can delete areas", 401);
 
   const area = await Area.findById(id);
   if (!area) throw new ErrorResponse("Area doesnt exist", 404);
