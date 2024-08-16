@@ -1,4 +1,3 @@
-import { required } from "joi";
 import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
@@ -10,4 +9,4 @@ const areaSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export default model("User", areaSchema);
+export default model("Area", areaSchema);
