@@ -39,27 +39,3 @@ export const me = asyncHandler(async (req, res, next) => {
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
   res.json({ user: { id: user._id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role } });
 });
-
-export const getUsers = asyncHandler(async (req, res, next) => {
-  const userId = req.userId;
-  const user = await User.findById(userId);
-
-  if (!user) throw new ErrorResponse("User doesnt exist", 404);
-  res.json(user.staff);
-});
-
-export const getAreas = asyncHandler(async (req, res, next) => {
-  const userId = req.userId;
-  const user = await User.findById(userId);
-
-  if (!user) throw new ErrorResponse("User doesnt exist", 404);
-  res.json(user.areas);
-});
-
-export const getTasks = asyncHandler(async (req, res, next) => {
-  const userId = req.userId;
-  const user = await User.findById(userId);
-
-  if (!user) throw new ErrorResponse("User doesnt exist", 404);
-  res.json(user.tasks);
-});
