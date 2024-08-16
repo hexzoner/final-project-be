@@ -2,10 +2,15 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const taskSchema = new Schema({
-  creator: { type: Schema.Types.ObjectId, ref: "User" },
-  area: { type: Schema.Types.ObjectId, ref: "Area" },
-  status: { type: String, enum: ["New", "Finished", "Overdue"] },
-  priority: { type: String, enum: ["High", "Medium", "Low"] },
+  title: { type: String, required: [true, "Title is required"] },
+  creator: { type: Schema.Types.ObjectId, required: [true, "Creator is required"], ref: "User" },
+  area: { type: Schema.Types.ObjectId, required: [true, "Area is required"], ref: "Area" },
+  status: {
+    type: String,
+    enum: ["New", "Finished", "Overdue"],
+    default: "New",
+  },
+  priority: { type: String, enum: ["High", "Medium", "Low"], default: "Medium" },
   description: { type: String },
   dueDate: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now },
