@@ -29,6 +29,8 @@ export const signIn = asyncHandler(async (req, res, next) => {
   const passwordMatch = await bcrypt.compare(password, found.password);
   if (!passwordMatch) throw new ErrorResponse("Wrong password", 401);
 
+  if (found.status === "inactive") throw new ErrorResponse("User is inactive", 401);
+
   const token = jwt.sign({ userId: found._id, email, role: found.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
   res.json({ user: { id: found._id, firstName: found.firstName, lastName: found.lastName, email, role: found.role }, token });
 });

@@ -1,4 +1,6 @@
 import User from "../models/User.js";
+import Area from "../models/Area.js";
+import Task from "../models/Task.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ErrorResponse from "../utils/ErrorResponse.js";
 import bcrypt from "bcrypt";
@@ -38,18 +40,30 @@ export const createUser = asyncHandler(async (req, res, next) => {
 export const updateUser = asyncHandler(async (req, res, next) => {
   const {
     params: { id },
-    body: { email, firstName, lastName, role, password },
+    body: { email, firstName, lastName, role, newPassword, currentPassword },
   } = req;
   const userId = req.userId;
   const userRole = req.userRole;
-  const userToEdit = await User.findById(id);
+  const userToEdit = await User.findById(id, "+password");
   if (!userToEdit) throw new ErrorResponse("User doesnt exist", 404);
 
   if (userRole == "staff" && userToEdit._id.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
 
-  if (email) userToEdit.email = email;
-  if (password) {
-    const hashedPassword = await bcrypt.hash(password, 10);
+  if (email) {
+    const alreadyExists = await User.findOne({ email });
+    if (alreadyExists && alreadyExists._id.toString() !== id) {
+      // throw new ErrorResponse("Email already exists", 400);
+      res.json({ message: "Email already exists" });
+    } else userToEdit.email = email;
+  }
+
+  if (newPassword && currentPassword) {
+    const passwordMatch = await bcrypt.compare(currentPassword, userToEdit.password);
+    if (!passwordMatch) {
+      // throw new ErrorResponse("Wrong password", 401);
+      res.json({ message: "Wrong password" }).status(401);
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
     userToEdit.password = hashedPassword;
   }
   if (firstName) userToEdit.firstName = firstName;
@@ -73,12 +87,26 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
   const userToDelete = await User.findById(id);
   if (!userToDelete) throw new ErrorResponse("User doesnt exist", 404);
 
-  if (userToDelete.creator.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
+  if (userToDelete.creator && userToDelete.creator.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
+  if (userToDelete.id.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
 
-  await User.findByIdAndDelete(id);
+  if (userToDelete.role == "admin") {
+    for (let i = 0; i < userToDelete.staff.length; i++) {
+      await User.findByIdAndDelete(userToDelete.staff[i]);
+    }
+    for (let i = 0; i < userToDelete.areas.length; i++) {
+      await Area.findByIdAndDelete(userToDelete.areas[i]);
+    }
+    for (let i = 0; i < userToDelete.tasks.length; i++) {
+      await Task.findByIdAndDelete(userToDelete.tasks[i]);
+    }
+    await User.findByIdAndDelete(id);
+  } else {
+    userToDelete.status = "inactive";
+  }
 
-  user.staff = user.staff.filter((userId) => userId.toString() !== id);
-  user.save();
+  // user.staff = user.staff.filter((userId) => userId.toString() !== id);
+  // user.save();
 
   res.json({ message: "User deleted" });
 });
