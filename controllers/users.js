@@ -50,7 +50,7 @@ export const updateUser = asyncHandler(async (req, res, next) => {
   if (email) userToEdit.email = email;
   if (password) {
     const hashedPassword = await bcrypt.hash(password, 10);
-    userToEdit.users = hashedPassword;
+    userToEdit.password = hashedPassword;
   }
   if (firstName) userToEdit.firstName = firstName;
   if (lastName) userToEdit.lastName = lastName;
