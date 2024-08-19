@@ -11,6 +11,7 @@ const userSchema = new Schema({
   staff: [{ type: Schema.Types.ObjectId, ref: "User" }],
   areas: [{ type: Schema.Types.ObjectId, ref: "Area" }],
   tasks: [{ type: Schema.Types.ObjectId, ref: "Task" }],
+  status: { type: String, enum: ["active", "inactive"], default: "active" },
   createdAt: { type: Date, default: Date.now },
 });
 
