@@ -44,20 +44,22 @@ export const updateTask = asyncHandler(async (req, res, next) => {
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
 
-  const foundArea = await Area.findById(area);
-  if (!foundArea) throw new ErrorResponse("Area doesnt exist", 404);
-
   const task = await Task.findById(id);
   if (!task) throw new ErrorResponse("Task doesnt exist", 404);
 
   if (task.creator.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
 
-  task.title = title;
-  task.description = description;
-  task.area = area;
-  task.priority = priority;
-  task.status = status;
-  task.dueDate = dueDate;
+  if (title) task.title = title;
+  if (description) task.description = description;
+
+  if (area) {
+    const foundArea = await Area.findById(area);
+    if (!foundArea) throw new ErrorResponse("Area doesnt exist", 404);
+    task.area = area;
+  }
+  if (priority) task.priority = priority;
+  if (status) task.status = status;
+  if (dueDate) task.dueDate = dueDate;
   task.save();
 
   res.json(task);

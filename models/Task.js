@@ -15,6 +15,7 @@ const taskSchema = new Schema({
   description: { type: String },
   dueDate: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now },
+  finishedDate: { type: Date, default: null },
 });
 
 export default model("Task", taskSchema);
