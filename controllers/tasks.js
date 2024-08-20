@@ -19,7 +19,7 @@ export const getTasks = asyncHandler(async (req, res, next) => {
 
 export const createTask = asyncHandler(async (req, res, next) => {
   const {
-    body: { title, description, area, priority, dueDate, status },
+    body: { title, description, area, priority, dueDate, status, finishedDate, assignedTo },
   } = req;
   const userId = req.userId;
   const user = await User.findById(userId);
@@ -29,7 +29,7 @@ export const createTask = asyncHandler(async (req, res, next) => {
   if (!foundArea) throw new ErrorResponse("Area doesnt exist", 404);
   if (foundArea.creator.toString() != userId) throw new ErrorResponse("Not authorized - area belongs to another user", 401);
 
-  const task = await Task.create({ creator: userId, title, description, area, priority, dueDate, status });
+  const task = await Task.create({ creator: userId, title, description, area, priority, dueDate, status, finishedDate, assignedTo });
   user.tasks.push(task);
   user.save();
   res.json(task);
@@ -38,7 +38,7 @@ export const createTask = asyncHandler(async (req, res, next) => {
 export const updateTask = asyncHandler(async (req, res, next) => {
   const {
     params: { id },
-    body: { title, description, area, priority, dueDate, status },
+    body: { title, description, area, priority, dueDate, status, finishedDate, assignedTo },
   } = req;
   const userId = req.userId;
   const user = await User.findById(userId);
@@ -60,6 +60,8 @@ export const updateTask = asyncHandler(async (req, res, next) => {
   if (priority) task.priority = priority;
   if (status) task.status = status;
   if (dueDate) task.dueDate = dueDate;
+  if (finishedDate) task.finishedDate = finishedDate;
+  if (assignedTo) task.assignedTo = assignedTo;
   task.save();
 
   res.json(task);

@@ -21,13 +21,13 @@ export const getAreas = asyncHandler(async (req, res, next) => {
 
 export const createArea = asyncHandler(async (req, res, next) => {
   const {
-    body: { name, users, status },
+    body: { name, users, status, address, contact },
   } = req;
   const userId = req.userId;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
 
-  const area = await Area.create({ creator: userId, name, users, status });
+  const area = await Area.create({ creator: userId, name, users, status, address, contact });
 
   user.areas.push(area);
   user.save();
@@ -38,7 +38,7 @@ export const createArea = asyncHandler(async (req, res, next) => {
 export const updateArea = asyncHandler(async (req, res, next) => {
   const {
     params: { id },
-    body: { name, users, status },
+    body: { name, users, status, address, contact },
   } = req;
   const userId = req.userId;
   const user = await User.findById(userId);
@@ -49,9 +49,11 @@ export const updateArea = asyncHandler(async (req, res, next) => {
 
   if (area.creator.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
 
-  area.name = name;
-  area.users = users;
-  area.status = status;
+  if (name) area.name = name;
+  if (users) area.users = users;
+  if (status) area.status = status;
+  if (address) area.address = address;
+  if (contact) area.contact = contact;
   area.save();
 
   res.json(area);
