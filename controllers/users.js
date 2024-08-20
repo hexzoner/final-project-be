@@ -34,7 +34,7 @@ export const createUser = asyncHandler(async (req, res, next) => {
   user.staff.push(newUser);
   user.save();
 
-  res.json(newUser);
+  res.json({ firstName, lastName, email, role, creator: userId, status: "active" });
 });
 
 export const updateUser = asyncHandler(async (req, res, next) => {
