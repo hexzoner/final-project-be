@@ -21,14 +21,20 @@ export const getStats = asyncHandler(async (req, res, next) => {
   const recordsToday = userTasks.filter((x) => new Date(x.createdAt).toLocaleDateString() == new Date().toLocaleDateString());
   const finishedTasks = userTasks.filter((x) => x.status == "Finished");
   const onTimeRate = finishedTasks.length / (finishedTasks.length + userTasks.filter((x) => x.status == "Overdue").length);
-  const hoursWorked = userTasks.reduce((hours, x) => hours + (x.finishedDate - x.createdAt), 0);
+  // const hoursWorked = userTasks.reduce((hours, x) => hours + (x.finishedDate - x.createdAt), 0);
 
+  let hoursWorked = 0;
+  for (let i = 0; i < userTasks.length; i++) {
+    if (userTasks[i].status == "Finished") {
+      hoursWorked += Math.round((userTasks[i].finishedDate - userTasks[i].createdAt) / (1000 * 60 * 60 * 8));
+    }
+  }
   // const remaining = await Task.find({ _id: user.tasks, status: "New" });
   // const recordsToday = await Task.find({ _id: user.tasks, createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } });
 
   res.json({
     recordsToday: recordsToday.length,
-    hoursWorked: hoursWorked > 0 ? hoursWorked : 0,
+    hoursWorked: hoursWorked,
     onTimeRate: onTimeRate ? onTimeRate : 0,
     tasksRemaining: remaining.length,
   });
