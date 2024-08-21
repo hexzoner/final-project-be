@@ -10,10 +10,16 @@ export const getAllTasks = asyncHandler(async (req, res, next) => {
 });
 
 export const getTasks = asyncHandler(async (req, res, next) => {
+  const {
+    query: { status },
+  } = req;
   const userId = req.userId;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
-  const userTasks = await Task.find({ _id: user.tasks }).populate("area creator", "name firstName lastName email");
+  const userTasks = await Task.find({
+    _id: user.tasks,
+    status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
+  }).populate("area creator", "name firstName lastName email");
   res.json(userTasks);
 });
 
