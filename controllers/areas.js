@@ -14,7 +14,7 @@ export const getAreas = asyncHandler(async (req, res, next) => {
 
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
 
-  const userAreas = await Area.find({ _id: user.areas });
+  const userAreas = await Area.find({ _id: user.areas }).populate('users', 'firstName lastName');
 
   res.json(userAreas);
 });
@@ -32,7 +32,9 @@ export const createArea = asyncHandler(async (req, res, next) => {
   user.areas.push(area);
   user.save();
 
-  res.json(area);
+  const populatedArea = await Area.findById(area._id).populate('users', 'firstName lastName');
+
+  res.json(populatedArea);
 });
 
 export const updateArea = asyncHandler(async (req, res, next) => {
@@ -56,7 +58,9 @@ export const updateArea = asyncHandler(async (req, res, next) => {
   if (contact) area.contact = contact;
   area.save();
 
-  res.json(area);
+  const populatedArea = await Area.findById(id).populate('users', 'firstName lastName');
+
+  res.json(populatedArea);
 });
 
 export const deleteArea = asyncHandler(async (req, res, next) => {
