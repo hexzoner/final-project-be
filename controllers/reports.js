@@ -52,6 +52,8 @@ export const getWeekTasks = asyncHandler(async (req, res, next) => {
     _id: user.tasks,
     area: area ? area : { $in: user.areas },
     createdAt: { $gte: new Date() - 7 * 24 * 60 * 60 * 1000 },
-  }).populate("area creator", "name firstName lastName email");
+  })
+    .sort({ createdAt: -1 })
+    .populate("area creator", "name firstName lastName email");
   res.json(tasksLastWeek);
 });
