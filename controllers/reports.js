@@ -42,11 +42,18 @@ export const getStats = asyncHandler(async (req, res, next) => {
 
 export const getWeekTasks = asyncHandler(async (req, res, next) => {
   const {
-    query: { area },
+    query: { area, page, perPage },
   } = req;
+
   const userId = req.userId;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
+
+  const totalLastWeek = await Task.countDocuments({
+    _id: user.tasks,
+    area: area ? area : { $in: user.areas },
+    createdAt: { $gte: new Date() - 7 * 24 * 60 * 60 * 1000 },
+  });
 
   const tasksLastWeek = await Task.find({
     _id: user.tasks,
@@ -54,6 +61,12 @@ export const getWeekTasks = asyncHandler(async (req, res, next) => {
     createdAt: { $gte: new Date() - 7 * 24 * 60 * 60 * 1000 },
   })
     .sort({ createdAt: -1 })
-    .populate("area creator", "name firstName lastName email");
-  res.json(tasksLastWeek);
+    .populate("area creator", "name firstName lastName email")
+    .limit(perPage)
+    .skip(perPage * (page - 1));
+
+  if (perPage <= 0) throw new ErrorResponse("Invalid per page number", 400);
+  const pages = Math.ceil(totalLastWeek / perPage);
+
+  res.json({ tasks: tasksLastWeek, total: totalLastWeek, page, pages });
 });
