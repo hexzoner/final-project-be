@@ -15,7 +15,7 @@ export const getUsers = asyncHandler(async (req, res, next) => {
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
 
-  const staff = await User.find({ _id: user.staff }, "firstName lastName email role");
+  const staff = await User.find({ _id: user.staff }).populate("creator", "firstName lastName email role");
   res.json(staff);
 });
 
@@ -34,7 +34,7 @@ export const createUser = asyncHandler(async (req, res, next) => {
   user.staff.push(newUser);
   user.save();
 
-  res.json({ firstName, lastName, email, role, creator: userId, status: "active" });
+  res.json({ firstName, lastName, email, role, creator: user, status: "active", createdAt: newUser.createdAt });
 });
 
 export const updateUser = asyncHandler(async (req, res, next) => {
