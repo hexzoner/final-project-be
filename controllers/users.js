@@ -123,6 +123,7 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
     await User.findByIdAndDelete(id);
   } else {
     userToDelete.status = "inactive";
+    userToDelete.save();
   }
 
   // user.staff = user.staff.filter((userId) => userId.toString() !== id);
