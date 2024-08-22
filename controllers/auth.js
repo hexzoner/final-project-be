@@ -4,6 +4,8 @@ import ErrorResponse from "../utils/ErrorResponse.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+const tokenExpireTime = "7d";
+
 export const signUp = asyncHandler(async (req, res, next) => {
   const {
     body: { email, password, firstName, lastName, role },
@@ -14,7 +16,7 @@ export const signUp = asyncHandler(async (req, res, next) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = await User.create({ firstName, lastName, email, password: hashedPassword, role });
-  const token = jwt.sign({ userId: user._id, email, role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+  const token = jwt.sign({ userId: user._id, email, role }, process.env.JWT_SECRET, { expiresIn: tokenExpireTime });
   res.json({ user: { id: user._id, firstName, lastName, email, role, createdAt: user.createdAt }, token });
 });
 
@@ -31,7 +33,7 @@ export const signIn = asyncHandler(async (req, res, next) => {
 
   if (found.status === "inactive") throw new ErrorResponse("User is inactive", 401);
 
-  const token = jwt.sign({ userId: found._id, email, role: found.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+  const token = jwt.sign({ userId: found._id, email, role: found.role }, process.env.JWT_SECRET, { expiresIn: tokenExpireTime });
   res.json({ user: { id: found._id, firstName: found.firstName, lastName: found.lastName, email, role: found.role }, token });
 });
 

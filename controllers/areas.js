@@ -11,12 +11,21 @@ export const getAllAreas = asyncHandler(async (req, res, next) => {
 export const getAreas = asyncHandler(async (req, res, next) => {
   const userId = req.userId;
   const user = await User.findById(userId);
+  const userRole = req.userRole;
 
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
-
-  const userAreas = await Area.find({ _id: user.areas }).populate('users', 'firstName lastName');
-
-  res.json(userAreas);
+  if (userRole == "staff") {
+    const adminUser = await User.findById(user.adminUserId);
+    if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
+    const userAreas = await Area.find({
+      _id: adminUser.areas,
+      users: { $in: [userId] },
+    }).populate("users", "firstName lastName");
+    res.json(userAreas);
+  } else {
+    const userAreas = await Area.find({ _id: user.areas }).populate("users", "firstName lastName");
+    res.json(userAreas);
+  }
 });
 
 export const createArea = asyncHandler(async (req, res, next) => {
@@ -32,7 +41,7 @@ export const createArea = asyncHandler(async (req, res, next) => {
   user.areas.push(area);
   user.save();
 
-  const populatedArea = await Area.findById(area._id).populate('users', 'firstName lastName');
+  const populatedArea = await Area.findById(area._id).populate("users", "firstName lastName");
 
   res.json(populatedArea);
 });
@@ -58,7 +67,7 @@ export const updateArea = asyncHandler(async (req, res, next) => {
   if (contact) area.contact = contact;
   area.save();
 
-  const populatedArea = await Area.findById(id).populate('users', 'firstName lastName');
+  const populatedArea = await Area.findById(id).populate("users", "firstName lastName");
 
   res.json(populatedArea);
 });
