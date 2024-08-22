@@ -33,15 +33,43 @@ export const getTasks = asyncHandler(async (req, res, next) => {
       _id: adminUser.tasks,
       $or: [{ assignedTo: { $in: [userId] } }, { area: { $in: userAreas } }],
       status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
-    }).populate("area creator", "name firstName lastName email");
-    res.json(userTasks);
+    })
+      .sort({ createdAt: -1 })
+      .populate("area creator", "name firstName lastName email");
+    return res.json(userTasks);
   }
 
   const userTasks = await Task.find({
     _id: user.tasks,
     status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
-  }).populate("area creator", "name firstName lastName email");
+  })
+    .sort({ createdAt: -1 })
+    .populate("area creator", "name firstName lastName email");
   res.json(userTasks);
+});
+
+export const getTaskById = asyncHandler(async (req, res, next) => {
+  const {
+    params: { id },
+  } = req;
+  const userId = req.userId;
+  const userRole = req.userRole;
+
+  if (!userId) throw new ErrorResponse("Invalid token - User doesnt exist", 404);
+
+  const task = await Task.findById(id);
+  if (!task) throw new ErrorResponse("Task doesnt exist", 404);
+  if (!task.adminId) throw new ErrorResponse("Invalid Task - no adminId found", 404);
+
+  if (userRole == "admin") {
+    if (task.adminId.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
+  } else {
+    const user = await User.findById(userId);
+    if (!user) throw new ErrorResponse("User doesnt exist", 404);
+    if (task.adminId.toString() !== user.adminUserId.toString()) throw new ErrorResponse("Not authorized - task belongs to another adminId", 401);
+  }
+
+  res.json(task);
 });
 
 export const createTask = asyncHandler(async (req, res, next) => {
@@ -49,6 +77,7 @@ export const createTask = asyncHandler(async (req, res, next) => {
     body: { title, description, area, priority, dueDate, status, finishedDate, assignedTo },
   } = req;
   const userId = req.userId;
+  const userRole = req.userRole;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
 
@@ -56,7 +85,16 @@ export const createTask = asyncHandler(async (req, res, next) => {
   if (!foundArea) throw new ErrorResponse("Area doesnt exist", 404);
   if (foundArea.creator.toString() != userId) throw new ErrorResponse("Not authorized - area belongs to another user", 401);
 
-  const task = await Task.create({ creator: userId, title, description, area, priority, dueDate, status, finishedDate, assignedTo });
+  let adminId = null;
+  if (userRole == "manager") {
+    const adminUser = await User.findById(user.adminUserId);
+    if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
+    adminId = adminUser._id;
+  } else {
+    adminId = userId;
+  }
+
+  const task = await Task.create({ adminId, creator: userId, title, description, area, priority, dueDate, status, finishedDate, assignedTo });
   user.tasks.push(task);
   user.save();
   res.json(task);
