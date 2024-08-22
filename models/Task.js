@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const taskSchema = new Schema({
+  adminId: { type: Schema.Types.ObjectId, ref: "User" },
   title: { type: String, required: [true, "Title is required"] },
   creator: { type: Schema.Types.ObjectId, required: [true, "Creator is required"], ref: "User" },
   area: { type: Schema.Types.ObjectId, required: [true, "Area is required"], ref: "Area" },
