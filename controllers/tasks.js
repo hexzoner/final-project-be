@@ -14,8 +14,29 @@ export const getTasks = asyncHandler(async (req, res, next) => {
     query: { status },
   } = req;
   const userId = req.userId;
+  const userRole = req.userRole;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
+
+  if (userRole == "staff") {
+    const adminUser = await User.findById(user.adminUserId);
+    if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
+
+    // Find areas that belong to the admin user and have the current user in the users array
+    const userAreas = await Area.find({
+      _id: adminUser.areas,
+      users: { $in: [userId] },
+    }).populate("users", "firstName lastName");
+
+    // Find tasks that belong to the admin user and have the current user in the assignedTo array or have the current user in the areas
+    const userTasks = await Task.find({
+      _id: adminUser.tasks,
+      $or: [{ assignedTo: { $in: [userId] } }, { area: { $in: userAreas } }],
+      status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
+    }).populate("area creator", "name firstName lastName email");
+    res.json(userTasks);
+  }
+
   const userTasks = await Task.find({
     _id: user.tasks,
     status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
