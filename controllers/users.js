@@ -25,16 +25,36 @@ export const createUser = asyncHandler(async (req, res, next) => {
   } = req;
   if (role == "admin") throw new ErrorResponse("Only users with role staff or manager can be created", 401);
   const userId = req.userId;
+  const userRole = req.userRole;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("Token from nonexisting User", 404);
 
+  // Manager tries to create a new user, so we need to find his adminId to assign it to the new user
+  let adminId = null;
+  if (userRole == "manager") {
+    const adminUser = await User.findById(user.adminUserId);
+    if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
+    adminId = adminUser._id;
+  }
+
   const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = await User.create({ firstName, lastName, email, password: hashedPassword, role, creator: userId });
+  const adminUserId = userRole == "admin" ? userId : adminId;
+
+  const newUser = await User.create({
+    firstName,
+    lastName,
+    email,
+    password: hashedPassword,
+    role,
+    creator: userId,
+    // if the user who creates a new user - is admin, we assign his userId to the new user, otherwise its the manager and we assign the adminId
+    adminUserId,
+  });
 
   user.staff.push(newUser);
   user.save();
 
-  res.json({ firstName, lastName, email, role, creator: user, status: "active", createdAt: newUser.createdAt });
+  res.json({ adminUserId, firstName, lastName, email, role, creator: user, status: "active", createdAt: newUser.createdAt });
 });
 
 export const updateUser = asyncHandler(async (req, res, next) => {
@@ -87,8 +107,8 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
   const userToDelete = await User.findById(id);
   if (!userToDelete) throw new ErrorResponse("User doesnt exist", 404);
 
-  if (userToDelete.creator && userToDelete.creator.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
-  if (userToDelete.id.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
+  // if (userToDelete.creator && userToDelete.creator.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
+  // if (userToDelete._id.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
 
   if (userToDelete.role == "admin") {
     for (let i = 0; i < userToDelete.staff.length; i++) {
