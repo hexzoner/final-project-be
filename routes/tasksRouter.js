@@ -16,7 +16,7 @@ tasksRouter.route("/all").get(getAllTasks);
 tasksRouter
   .route("/:id")
   .get(verifyTokenMiddleware, getTaskById)
-  .put(verifyTokenMiddleware, authorize(["admin"]), updateTask)
+  .put(verifyTokenMiddleware, authorize(["admin", "manager", "staff"]), updateTask)
   .delete(verifyTokenMiddleware, authorize(["admin"]), deleteTask);
 
 export default tasksRouter;

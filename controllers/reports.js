@@ -25,8 +25,10 @@ export const getStats = asyncHandler(async (req, res, next) => {
 
   let hoursWorked = 0;
   for (let i = 0; i < userTasks.length; i++) {
-    if (userTasks[i].status == "Finished") {
-      hoursWorked += Math.round((userTasks[i].finishedDate - userTasks[i].createdAt) / (1000 * 60 * 60 * 8));
+    if (userTasks[i].status == "Finished" && userTasks[i].finishedDate && userTasks[i].startedDate) {
+      if (userTasks[i].finishedDate - userTasks[i].startedDate < 0) {
+        hoursWorked += Math.round((new Date() - userTasks[i].startedDate) / (1000 * 60));
+      } else hoursWorked += Math.round((userTasks[i].finishedDate - userTasks[i].startedDate) / (1000 * 60));
     }
   }
   // const remaining = await Task.find({ _id: user.tasks, status: "New" });
