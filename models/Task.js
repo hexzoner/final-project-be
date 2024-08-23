@@ -9,13 +9,14 @@ const taskSchema = new Schema({
   assignedTo: [{ type: Schema.Types.ObjectId, ref: "User" }],
   status: {
     type: String,
-    enum: ["New", "Finished", "Overdue"],
+    enum: ["New", "Finished", "Overdue", "In Progress"],
     default: "New",
   },
   priority: { type: String, enum: ["High", "Medium", "Low"], default: "Medium" },
   description: { type: String },
   dueDate: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now },
+  startedDate: { type: Date, default: null },
   finishedDate: { type: Date, default: null },
 });
 

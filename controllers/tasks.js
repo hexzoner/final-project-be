@@ -107,13 +107,20 @@ export const updateTask = asyncHandler(async (req, res, next) => {
     body: { title, description, area, priority, dueDate, status, finishedDate, assignedTo },
   } = req;
   const userId = req.userId;
+  const role = req.userRole;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
 
   const task = await Task.findById(id);
   if (!task) throw new ErrorResponse("Task doesnt exist", 404);
 
-  if (task.creator.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
+  if (!task.adminId) throw new ErrorResponse("Invalid Task - no adminId found", 404);
+
+  if (role == "admin" && task.adminId.toString() !== userId) throw new ErrorResponse("Not authorized (task.creator != userId)", 401);
+  if (role == "staff" || role == "manager") {
+    const userAdmin = await User.findById(user.adminUserId);
+    if (task.adminId.toString() !== userAdmin._id.toString()) throw new ErrorResponse("Not authorized (task.creator != userAdmin)", 401);
+  }
 
   if (title) task.title = title;
   if (description) task.description = description;
@@ -124,7 +131,11 @@ export const updateTask = asyncHandler(async (req, res, next) => {
     task.area = area;
   }
   if (priority) task.priority = priority;
-  if (status) task.status = status;
+  if (status) {
+    task.status = status;
+    if (status == "Finished") task.finishedDate = Date.now();
+    if (status == "In Progress") task.startedDate = Date.now();
+  }
   if (dueDate) task.dueDate = dueDate;
   if (finishedDate) task.finishedDate = finishedDate;
   if (assignedTo) task.assignedTo = assignedTo;
