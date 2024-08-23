@@ -11,8 +11,9 @@ export const getAllTasks = asyncHandler(async (req, res, next) => {
 
 export const getTasks = asyncHandler(async (req, res, next) => {
   const {
-    query: { status },
+    query: { status, area },
   } = req;
+
   const userId = req.userId;
   const userRole = req.userRole;
   const user = await User.findById(userId);
@@ -31,7 +32,7 @@ export const getTasks = asyncHandler(async (req, res, next) => {
     // Find tasks that belong to the admin user and have the current user in the assignedTo array or have the current user in the areas
     const userTasks = await Task.find({
       _id: adminUser.tasks,
-      $or: [{ assignedTo: { $in: [userId] } }, { area: { $in: userAreas } }],
+      $or: [{ assignedTo: { $in: [userId] } }, { area: area ? area : { $in: userAreas } }],
       status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
     })
       .sort({ createdAt: -1 })
