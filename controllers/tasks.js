@@ -19,6 +19,8 @@ export const getTasks = asyncHandler(async (req, res, next) => {
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
 
+  let userTasks = [];
+  let total = 0;
   if (userRole == "staff") {
     const adminUser = await User.findById(user.adminUserId);
     if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
@@ -32,24 +34,41 @@ export const getTasks = asyncHandler(async (req, res, next) => {
       .skip(perPage * (page - 1));
 
     // Find tasks that belong to the admin user and have the current user in the assignedTo array or have the current user in the areas
-    const userTasks = await Task.find({
+    userTasks = await Task.find({
       _id: adminUser.tasks,
       $or: [{ assignedTo: { $in: [userId] } }, { area: area ? area : { $in: userAreas } }],
       status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
     })
       .sort({ createdAt: -1 })
       .populate("area creator", "name firstName lastName email")
+      .limit(perPage)
       .skip(perPage * (page - 1));
-    return res.json(userTasks);
+
+    total = await Task.countDocuments({
+      _id: adminUser.tasks,
+      $or: [{ assignedTo: { $in: [userId] } }, { area: area ? area : { $in: userAreas } }],
+      status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
+    });
+  } else {
+    userTasks = await Task.find({
+      _id: user.tasks,
+      status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
+    })
+      .sort({ createdAt: -1 })
+      .populate("area creator", "name firstName lastName email")
+      .limit(perPage)
+      .skip(perPage * (page - 1));
+
+    total = await Task.countDocuments({
+      _id: user.tasks,
+      status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
+    });
   }
 
-  const userTasks = await Task.find({
-    _id: user.tasks,
-    status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
-  })
-    .sort({ createdAt: -1 })
-    .populate("area creator", "name firstName lastName email");
-  res.json(userTasks);
+  if (perPage <= 0) throw new ErrorResponse("Invalid per page number", 400);
+  const pages = Math.ceil(total / perPage);
+
+  res.json({ tasks: userTasks, total: total, page, pages });
 });
 
 export const getTaskById = asyncHandler(async (req, res, next) => {
