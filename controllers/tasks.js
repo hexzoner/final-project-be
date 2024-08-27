@@ -20,7 +20,7 @@ export const getTasks = asyncHandler(async (req, res, next) => {
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
 
   let userTasks = [];
-  let total = 0;
+  let totalResults = 0;
 
   let adminUser = null;
   if (userRole == "staff" || userRole == "manager") {
@@ -46,12 +46,12 @@ export const getTasks = asyncHandler(async (req, res, next) => {
     .limit(perPage)
     .skip(perPage * (page - 1));
 
-  total = await Task.countDocuments(query);
+  totalResults = await Task.countDocuments(query);
 
   if (perPage <= 0) throw new ErrorResponse("Invalid per page number", 400);
-  const pages = Math.ceil(total / perPage);
+  const totalPages = Math.ceil(totalResults / perPage);
 
-  res.json({ tasks: userTasks, total: total, page, pages });
+  res.json({ tasks: userTasks, totalResults, page, totalPages });
 });
 
 export const getTaskById = asyncHandler(async (req, res, next) => {

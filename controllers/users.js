@@ -26,7 +26,7 @@ export const getUsers = asyncHandler(async (req, res, next) => {
   }
 
   const query = { _id: userRole == "admin" ? user.staff : adminUser.staff, status: "active" };
-  const total = await User.countDocuments(query);
+  const totalResults = await User.countDocuments(query);
   const staff = await User.find(query)
     .sort({ createdAt: -1 })
     .populate("creator", "firstName lastName email role")
@@ -34,9 +34,9 @@ export const getUsers = asyncHandler(async (req, res, next) => {
     .skip(perPage * (page - 1));
 
   if (perPage <= 0) throw new ErrorResponse("Invalid per page number", 400);
-  const pages = Math.ceil(total / perPage);
+  const totalPages = Math.ceil(totalResults / perPage);
 
-  res.json({ staff, total, page, pages });
+  res.json({ staff, totalResults, page, totalPages });
 });
 
 export const createUser = asyncHandler(async (req, res, next) => {
