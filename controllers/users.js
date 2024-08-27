@@ -21,8 +21,10 @@ export const getUsers = asyncHandler(async (req, res, next) => {
 
 export const createUser = asyncHandler(async (req, res, next) => {
   const {
+    query: { status, page, perPage },
     body: { email, password, firstName, lastName, role },
   } = req;
+
   if (role == "admin") throw new ErrorResponse("Only users with role staff or manager can be created", 401);
   const userId = req.userId;
   const userRole = req.userRole;

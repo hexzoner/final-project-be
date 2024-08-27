@@ -9,6 +9,10 @@ export const getAllAreas = asyncHandler(async (req, res, next) => {
 });
 
 export const getAreas = asyncHandler(async (req, res, next) => {
+  const {
+    query: { page, perPage },
+  } = req;
+
   const userId = req.userId;
   const user = await User.findById(userId);
   const userRole = req.userRole;
@@ -20,10 +24,14 @@ export const getAreas = asyncHandler(async (req, res, next) => {
     const userAreas = await Area.find({
       _id: adminUser.areas,
       users: { $in: [userId] },
-    }).populate("users", "firstName lastName");
+    })
+      .populate("users", "firstName lastName")
+      .skip(perPage * (page - 1));
     res.json(userAreas);
   } else {
-    const userAreas = await Area.find({ _id: user.areas }).populate("users", "firstName lastName");
+    const userAreas = await Area.find({ _id: user.areas })
+      .populate("users", "firstName lastName")
+      .skip(perPage * (page - 1));
     res.json(userAreas);
   }
 });

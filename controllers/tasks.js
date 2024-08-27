@@ -11,7 +11,7 @@ export const getAllTasks = asyncHandler(async (req, res, next) => {
 
 export const getTasks = asyncHandler(async (req, res, next) => {
   const {
-    query: { status, area },
+    query: { status, area, page, perPage },
   } = req;
 
   const userId = req.userId;
@@ -27,7 +27,9 @@ export const getTasks = asyncHandler(async (req, res, next) => {
     const userAreas = await Area.find({
       _id: adminUser.areas,
       users: { $in: [userId] },
-    }).populate("users", "firstName lastName");
+    })
+      .populate("users", "firstName lastName")
+      .skip(perPage * (page - 1));
 
     // Find tasks that belong to the admin user and have the current user in the assignedTo array or have the current user in the areas
     const userTasks = await Task.find({
@@ -36,7 +38,8 @@ export const getTasks = asyncHandler(async (req, res, next) => {
       status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
     })
       .sort({ createdAt: -1 })
-      .populate("area creator", "name firstName lastName email");
+      .populate("area creator", "name firstName lastName email")
+      .skip(perPage * (page - 1));
     return res.json(userTasks);
   }
 
