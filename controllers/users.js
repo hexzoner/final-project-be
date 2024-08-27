@@ -15,12 +15,20 @@ export const getUsers = asyncHandler(async (req, res, next) => {
     query: { page, perPage },
   } = req;
   const userId = req.userId;
+  const userRole = req.userRole;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
 
-  const total = await User.countDocuments({ _id: user.staff });
+  let adminUser = null;
+  if (userRole == "manager") {
+    adminUser = await User.findById(user.adminUserId);
+    if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
+  }
 
-  const staff = await User.find({ _id: user.staff })
+  const query = { _id: userRole == "admin" ? user.staff : adminUser.staff, status: "active" };
+  const total = await User.countDocuments(query);
+  const staff = await User.find(query)
+    .sort({ createdAt: -1 })
     .populate("creator", "firstName lastName email role")
     .limit(perPage)
     .skip(perPage * (page - 1));
@@ -33,7 +41,6 @@ export const getUsers = asyncHandler(async (req, res, next) => {
 
 export const createUser = asyncHandler(async (req, res, next) => {
   const {
-    query: { status, page, perPage },
     body: { email, password, firstName, lastName, role },
   } = req;
 
@@ -46,6 +53,7 @@ export const createUser = asyncHandler(async (req, res, next) => {
   // Manager tries to create a new user, so we need to find his adminId to assign it to the new user
   let adminId = null;
   if (userRole == "manager") {
+    if (!user.adminUserId) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
     const adminUser = await User.findById(user.adminUserId);
     if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
     adminId = adminUser._id;
@@ -79,9 +87,19 @@ export const updateUser = asyncHandler(async (req, res, next) => {
   const userId = req.userId;
   const userRole = req.userRole;
   const userToEdit = await User.findById(id, "+password");
-  if (!userToEdit) throw new ErrorResponse("User doesnt exist", 404);
+  const user = await User.findById(userId);
+
+  if (!userToEdit || !user) throw new ErrorResponse("User doesnt exist", 404);
 
   if (userRole == "staff" && userToEdit._id.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
+
+  if (userRole == "admin" && !user.staff.includes(id)) throw new ErrorResponse("Not authorized", 401);
+
+  if (userRole == "manager") {
+    if (!user.adminUserId) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
+    const adminUser = await User.findById(user.adminUserId);
+    if (!adminUser.staff.includes(id)) throw new ErrorResponse("Not authorized", 401);
+  }
 
   if (email) {
     const alreadyExists = await User.findOne({ email });
@@ -105,7 +123,15 @@ export const updateUser = asyncHandler(async (req, res, next) => {
   if (role) userToEdit.role = role;
   userToEdit.save();
 
-  res.json(userToEdit);
+  res.json({
+    _id: userToEdit._id,
+    adminUserId: userToEdit.adminUserId,
+    firstName: userToEdit.firstName,
+    lastName: userToEdit.lastName,
+    email: userToEdit.email,
+    role: userToEdit.role,
+    status: userToEdit.status,
+  });
 });
 
 export const deleteUser = asyncHandler(async (req, res, next) => {
@@ -114,15 +140,20 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
   } = req;
 
   const userId = req.userId;
+  const userRole = req.userRole;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
-  if (user.role != "admin") throw new ErrorResponse("Not authorized - only admin can delete users", 401);
 
   const userToDelete = await User.findById(id);
   if (!userToDelete) throw new ErrorResponse("User doesnt exist", 404);
 
-  // if (userToDelete.creator && userToDelete.creator.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
-  // if (userToDelete._id.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
+  if (userRole == "admin" && userToDelete._id.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
+  if (userRole == "manager") {
+    if (!user.adminUserId) throw new ErrorResponse("This account doesnt have a AdminUserId", 404);
+    const adminUser = await User.findById(user.adminUserId);
+    if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - user not found", 404);
+    if (!adminUser.staff.includes(id)) throw new ErrorResponse("Not authorized", 401);
+  }
 
   if (userToDelete.role == "admin") {
     for (let i = 0; i < userToDelete.staff.length; i++) {
@@ -136,12 +167,13 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
     }
     await User.findByIdAndDelete(id);
   } else {
-    userToDelete.status = "inactive";
-    userToDelete.save();
-  }
+    if (userToDelete.status == "active") userToDelete.status = "inactive";
+    else throw new ErrorResponse("User is already inactive", 400);
 
-  // user.staff = user.staff.filter((userId) => userId.toString() !== id);
-  // user.save();
+    // user.staff = user.staff.filter((userId) => userId.toString() !== id);
+    // user.save();
+    await userToDelete.save();
+  }
 
   res.json({ message: "User deleted" });
 });

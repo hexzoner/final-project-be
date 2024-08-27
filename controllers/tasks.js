@@ -21,49 +21,32 @@ export const getTasks = asyncHandler(async (req, res, next) => {
 
   let userTasks = [];
   let total = 0;
-  if (userRole == "staff") {
-    const adminUser = await User.findById(user.adminUserId);
+
+  let adminUser = null;
+  if (userRole == "staff" || userRole == "manager") {
+    adminUser = await User.findById(user.adminUserId);
     if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
-
-    // Find areas that belong to the admin user and have the current user in the users array
-    const userAreas = await Area.find({
-      _id: adminUser.areas,
-      users: { $in: [userId] },
-    })
-      .populate("users", "firstName lastName")
-      .skip(perPage * (page - 1));
-
-    // Find tasks that belong to the admin user and have the current user in the assignedTo array or have the current user in the areas
-    userTasks = await Task.find({
-      _id: adminUser.tasks,
-      $or: [{ assignedTo: { $in: [userId] } }, { area: area ? area : { $in: userAreas } }],
-      status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
-    })
-      .sort({ createdAt: -1 })
-      .populate("area creator", "name firstName lastName email")
-      .limit(perPage)
-      .skip(perPage * (page - 1));
-
-    total = await Task.countDocuments({
-      _id: adminUser.tasks,
-      $or: [{ assignedTo: { $in: [userId] } }, { area: area ? area : { $in: userAreas } }],
-      status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
-    });
-  } else {
-    userTasks = await Task.find({
-      _id: user.tasks,
-      status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
-    })
-      .sort({ createdAt: -1 })
-      .populate("area creator", "name firstName lastName email")
-      .limit(perPage)
-      .skip(perPage * (page - 1));
-
-    total = await Task.countDocuments({
-      _id: user.tasks,
-      status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
-    });
   }
+
+  // Find areas that belong to the admin user
+  const userAreas = await Area.find({
+    _id: userRole == "admin" ? user.areas : adminUser.areas,
+    users: userRole == "staff" ? { $in: [userId] } : { $exists: true },
+  }).populate("users", "firstName lastName");
+
+  // Find tasks that belong to the admin user and have the current user in the assignedTo array or have the current user in the areas
+  const query = {
+    _id: userRole == "admin" ? user.tasks : adminUser.tasks,
+    $or: [{ assignedTo: { $in: [userId] } }, { area: area ? area : { $in: userAreas } }],
+    status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
+  };
+  userTasks = await Task.find(query)
+    .sort({ createdAt: -1 })
+    .populate("area creator", "name firstName lastName email")
+    .limit(perPage)
+    .skip(perPage * (page - 1));
+
+  total = await Task.countDocuments(query);
 
   if (perPage <= 0) throw new ErrorResponse("Invalid per page number", 400);
   const pages = Math.ceil(total / perPage);
@@ -104,22 +87,35 @@ export const createTask = asyncHandler(async (req, res, next) => {
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
 
+  if (userRole == "admin" && !user.areas.includes(area)) throw new ErrorResponse("Not authorized - area doesnt belong to user", 401);
   const foundArea = await Area.findById(area);
   if (!foundArea) throw new ErrorResponse("Area doesnt exist", 404);
-  if (foundArea.creator.toString() != userId) throw new ErrorResponse("Not authorized - area belongs to another user", 401);
 
+  // if (foundArea.adminId.toString() != userId) throw new ErrorResponse("Not authorized  1 - area belongs to another user", 401);
+
+  let adminUser = null;
   let adminId = null;
+
   if (userRole == "manager") {
-    const adminUser = await User.findById(user.adminUserId);
+    adminUser = await User.findById(user.adminUserId);
     if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
+
+    if (foundArea.adminId.toString() != adminUser._id.toString()) throw new ErrorResponse("Not authorized 2 - area belongs to another user", 401);
     adminId = adminUser._id;
-  } else {
+  } else if (userRole == "admin") {
     adminId = userId;
-  }
+  } else throw new ErrorResponse("Not authorized - only admin or manager can create tasks", 401);
 
   const task = await Task.create({ adminId, creator: userId, title, description, area, priority, dueDate, status, finishedDate, assignedTo });
-  user.tasks.push(task);
-  user.save();
+
+  if (userRole == "admin") {
+    user.tasks.push(task);
+    user.save();
+  } else if (userRole == "manager") {
+    adminUser.tasks.push(task);
+    adminUser.save();
+  } else throw new ErrorResponse("Not authorized - only admin or manager can create tasks", 401);
+
   res.json(task);
 });
 

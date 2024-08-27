@@ -11,7 +11,7 @@ const tasksRouter = Router();
 tasksRouter
   .route("/")
   .get(verifyTokenMiddleware, getTasks)
-  .post(verifyTokenMiddleware, authorize(["admin"]), createTask);
+  .post(verifyTokenMiddleware, authorize(["admin", "manager"]), createTask);
 tasksRouter.route("/all").get(getAllTasks);
 tasksRouter
   .route("/:id")

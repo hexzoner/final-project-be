@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const areaSchema = new Schema({
+  adminId: { type: Schema.Types.ObjectId, ref: "User" },
   creator: { type: Schema.Types.ObjectId, ref: "User" },
   name: { type: String, required: [true, "Name is required"] },
   address: { type: String },

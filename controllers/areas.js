@@ -20,29 +20,26 @@ export const getAreas = asyncHandler(async (req, res, next) => {
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
   let userAreas = [];
   let total = 0;
-  if (userRole == "staff") {
-    const adminUser = await User.findById(user.adminUserId);
+  let adminUser = null;
+
+  if (userRole == "staff" || userRole == "manager") {
+    adminUser = await User.findById(user.adminUserId);
     if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
-    userAreas = await Area.find({
-      _id: adminUser.areas,
-      users: { $in: [userId] },
-    })
-      .populate("users", "firstName lastName")
-      .limit(perPage)
-      .skip(perPage * (page - 1));
-
-    total = await Area.countDocuments({
-      _id: adminUser.areas,
-      users: { $in: [userId] },
-    });
-  } else {
-    userAreas = await Area.find({ _id: user.areas })
-      .populate("users", "firstName lastName")
-      .limit(perPage)
-      .skip(perPage * (page - 1));
-
-    total = await Area.countDocuments({ _id: user.areas });
   }
+
+  userAreas = await Area.find({
+    _id: userRole == "admin" ? user.areas : adminUser.areas,
+    users: userRole == "staff" ? { $in: [userId] } : { $exists: true },
+  })
+    .sort({ createdAt: -1 })
+    .populate("users", "firstName lastName")
+    .limit(perPage)
+    .skip(perPage * (page - 1));
+
+  total = await Area.countDocuments({
+    _id: userRole == "admin" ? user.areas : adminUser.areas,
+    users: userRole == "staff" ? { $in: [userId] } : { $exists: true },
+  });
 
   if (perPage <= 0) throw new ErrorResponse("Invalid per page number", 400);
   const pages = Math.ceil(total / perPage);
@@ -55,16 +52,24 @@ export const createArea = asyncHandler(async (req, res, next) => {
     body: { name, users, status, address, contact },
   } = req;
   const userId = req.userId;
+  const userRole = req.userRole;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
 
-  const area = await Area.create({ creator: userId, name, users, status, address, contact });
-
-  user.areas.push(area);
-  user.save();
+  let area = null;
+  if (userRole == "admin") {
+    area = await Area.create({ adminId: userId, creator: userId, name, users, status, address, contact });
+    user.areas.push(area);
+    user.save();
+  } else if (userRole == "manager") {
+    if (!user.adminUserId) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
+    const adminUser = await User.findById(user.adminUserId);
+    area = await Area.create({ adminId: user.adminUserId, creator: userId, name, users, status, address, contact });
+    adminUser.areas.push(area);
+    adminUser.save();
+  } else throw new ErrorResponse("Only users with role admin/manager can create areas", 401);
 
   const populatedArea = await Area.findById(area._id).populate("users", "firstName lastName");
-
   res.json(populatedArea);
 });
 
@@ -74,20 +79,28 @@ export const updateArea = asyncHandler(async (req, res, next) => {
     body: { name, users, status, address, contact },
   } = req;
   const userId = req.userId;
+  const userRole = req.userRole;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
 
   const area = await Area.findById(id);
   if (!area) throw new ErrorResponse("Area doesnt exist", 404);
 
-  if (area.creator.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
+  if (userRole == "admin" && !user.areas.includes(area._id.toString())) throw new ErrorResponse("Not authorized", 401);
+
+  if (userRole == "manager") {
+    if (!user.adminUserId) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
+    const adminUser = await User.findById(user.adminUserId);
+    if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
+    if (!adminUser.areas.includes(area._id.toString())) throw new ErrorResponse("Not authorized", 401);
+  }
 
   if (name) area.name = name;
   if (users) area.users = users;
   if (status) area.status = status;
   if (address) area.address = address;
   if (contact) area.contact = contact;
-  area.save();
+  await area.save();
 
   const populatedArea = await Area.findById(id).populate("users", "firstName lastName");
 
@@ -100,14 +113,21 @@ export const deleteArea = asyncHandler(async (req, res, next) => {
   } = req;
 
   const userId = req.userId;
-  const user = await User.findById(userId);
-  if (!user) throw new ErrorResponse("User doesnt exist", 404);
-  if (user.role != "admin") throw new ErrorResponse("Not authorized - only admin can delete areas", 401);
-
+  const userRole = req.userRole;
   const area = await Area.findById(id);
   if (!area) throw new ErrorResponse("Area doesnt exist", 404);
 
-  if (area.creator.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
+  const user = await User.findById(userId);
+  if (!user) throw new ErrorResponse("User doesnt exist", 404);
+
+  if (userRole == "admin" && !user.areas.includes(area._id.toString())) throw new ErrorResponse("Not authorized", 401);
+
+  if (userRole == "manager") {
+    if (!user.adminUserId) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
+    const adminUser = await User.findById(user.adminUserId);
+    if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
+    if (!adminUser.areas.includes(area._id.toString())) throw new ErrorResponse("Not authorized", 401);
+  }
 
   await Area.findByIdAndDelete(id);
 

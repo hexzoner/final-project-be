@@ -17,6 +17,6 @@ usersRouter.route("/all").get(getAllUsers);
 usersRouter
   .route("/:id")
   .put(verifyTokenMiddleware, authorize(["admin", "manager", "staff"]), updateUser)
-  .delete(verifyTokenMiddleware, authorize(["admin"]), deleteUser);
+  .delete(verifyTokenMiddleware, authorize(["admin", "manager"]), deleteUser);
 
 export default usersRouter;
