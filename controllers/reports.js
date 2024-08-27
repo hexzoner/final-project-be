@@ -64,24 +64,21 @@ export const getWeekTasks = asyncHandler(async (req, res, next) => {
     adminUser = await User.findById(user.adminUserId);
   }
 
-  const totalLastWeek = await Task.countDocuments({
+  const query = {
     _id: userRole == "admin" ? user.tasks : adminUser.tasks,
     area: area ? area : { $in: userRole == "admin" ? user.areas : adminUser.areas },
     createdAt: { $gte: new Date() - 7 * 24 * 60 * 60 * 1000 },
-  });
+  };
+  const totalLastWeek = await Task.countDocuments(query);
 
-  const tasksLastWeek = await Task.find({
-    _id: userRole == "admin" ? user.tasks : adminUser.tasks,
-    area: area ? area : { $in: userRole == "admin" ? user.areas : adminUser.areas },
-    createdAt: { $gte: new Date() - 7 * 24 * 60 * 60 * 1000 },
-  })
+  const tasksLastWeek = await Task.find(query)
     .sort({ createdAt: -1 })
     .populate("area creator", "name firstName lastName email")
     .limit(perPage)
     .skip(perPage * (page - 1));
 
   if (perPage <= 0) throw new ErrorResponse("Invalid per page number", 400);
-  const pages = Math.ceil(totalLastWeek / perPage);
+  const totalPages = Math.ceil(totalLastWeek / perPage);
 
-  res.json({ tasks: tasksLastWeek, total: totalLastWeek, page, pages });
+  res.json({ tasks: tasksLastWeek, totalResults: totalLastWeek, page, totalPages });
 });

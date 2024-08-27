@@ -19,7 +19,7 @@ export const getAreas = asyncHandler(async (req, res, next) => {
 
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
   let userAreas = [];
-  let total = 0;
+  let totalResults = 0;
   let adminUser = null;
 
   if (userRole == "staff" || userRole == "manager") {
@@ -27,24 +27,23 @@ export const getAreas = asyncHandler(async (req, res, next) => {
     if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
   }
 
-  userAreas = await Area.find({
+  const query = {
     _id: userRole == "admin" ? user.areas : adminUser.areas,
     users: userRole == "staff" ? { $in: [userId] } : { $exists: true },
-  })
+  };
+
+  userAreas = await Area.find(query)
     .sort({ createdAt: -1 })
     .populate("users", "firstName lastName")
     .limit(perPage)
     .skip(perPage * (page - 1));
 
-  total = await Area.countDocuments({
-    _id: userRole == "admin" ? user.areas : adminUser.areas,
-    users: userRole == "staff" ? { $in: [userId] } : { $exists: true },
-  });
+  totalResults = await Area.countDocuments(query);
 
   if (perPage <= 0) throw new ErrorResponse("Invalid per page number", 400);
-  const pages = Math.ceil(total / perPage);
+  const totalPages = Math.ceil(totalResults / perPage);
 
-  res.json({ areas: userAreas, total, page, pages });
+  res.json({ areas: userAreas, page, totalResults, totalPages });
 });
 
 export const createArea = asyncHandler(async (req, res, next) => {
