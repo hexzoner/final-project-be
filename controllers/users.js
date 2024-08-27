@@ -11,18 +11,32 @@ export const getAllUsers = asyncHandler(async (req, res, next) => {
 });
 
 export const getUsers = asyncHandler(async (req, res, next) => {
+  const {
+    query: { page, perPage },
+  } = req;
   const userId = req.userId;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
 
-  const staff = await User.find({ _id: user.staff }).populate("creator", "firstName lastName email role");
-  res.json(staff);
+  const total = await User.countDocuments({ _id: user.staff });
+
+  const staff = await User.find({ _id: user.staff })
+    .populate("creator", "firstName lastName email role")
+    .limit(perPage)
+    .skip(perPage * (page - 1));
+
+  if (perPage <= 0) throw new ErrorResponse("Invalid per page number", 400);
+  const pages = Math.ceil(total / perPage);
+
+  res.json({ staff, total, page, pages });
 });
 
 export const createUser = asyncHandler(async (req, res, next) => {
   const {
+    query: { status, page, perPage },
     body: { email, password, firstName, lastName, role },
   } = req;
+
   if (role == "admin") throw new ErrorResponse("Only users with role staff or manager can be created", 401);
   const userId = req.userId;
   const userRole = req.userRole;
