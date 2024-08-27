@@ -11,11 +11,11 @@ const areasRouter = Router();
 areasRouter
   .route("/")
   .get(verifyTokenMiddleware, getAreas)
-  .post(verifyTokenMiddleware, authorize(["admin"]), createArea);
+  .post(verifyTokenMiddleware, authorize(["admin", "manager"]), createArea);
 areasRouter.route("/all").get(getAllAreas);
 areasRouter
   .route("/:id")
-  .put(verifyTokenMiddleware, authorize(["admin"]), updateArea)
-  .delete(verifyTokenMiddleware, authorize(["admin"]), deleteArea);
+  .put(verifyTokenMiddleware, authorize(["admin", "manager"]), updateArea)
+  .delete(verifyTokenMiddleware, authorize(["admin", "manager"]), deleteArea);
 
 export default areasRouter;

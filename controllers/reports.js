@@ -10,11 +10,19 @@ export const getStats = asyncHandler(async (req, res, next) => {
   } = req;
 
   const userId = req.userId;
+  const userRole = req.userRole;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
+  if (userRole == "staff") throw new ErrorResponse("Not authorized - staff can't get stats", 401);
+
+  let adminUser = null;
+  if (userRole == "manager") {
+    adminUser = await User.findById(user.adminUserId);
+  }
+
   const userTasks = await Task.find({
-    _id: user.tasks,
-    area: area ? area : { $in: user.areas },
+    _id: userRole == "admin" ? user.tasks : adminUser.tasks,
+    area: area ? area : { $in: userRole == "admin" ? user.areas : adminUser.areas },
   }).populate("area creator", "name firstName lastName email");
 
   const remaining = userTasks.filter((x) => x.status == "New");
@@ -28,7 +36,7 @@ export const getStats = asyncHandler(async (req, res, next) => {
     if (userTasks[i].status == "Finished" && userTasks[i].finishedDate && userTasks[i].startedDate) {
       if (userTasks[i].finishedDate - userTasks[i].startedDate < 0) {
         hoursWorked += Math.round((new Date() - userTasks[i].startedDate) / (1000 * 60));
-      } else hoursWorked += Math.round((userTasks[i].finishedDate - userTasks[i].startedDate) / (1000 * 60));
+      } else hoursWorked += Math.round((userTasks[i].finishedDate - userTasks[i].startedDate) / (1000 * 60 * 60));
     }
   }
   // const remaining = await Task.find({ _id: user.tasks, status: "New" });
@@ -48,18 +56,23 @@ export const getWeekTasks = asyncHandler(async (req, res, next) => {
   } = req;
 
   const userId = req.userId;
+  const userRole = req.userRole;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
+  let adminUser = null;
+  if (userRole == "manager") {
+    adminUser = await User.findById(user.adminUserId);
+  }
 
   const totalLastWeek = await Task.countDocuments({
-    _id: user.tasks,
-    area: area ? area : { $in: user.areas },
+    _id: userRole == "admin" ? user.tasks : adminUser.tasks,
+    area: area ? area : { $in: userRole == "admin" ? user.areas : adminUser.areas },
     createdAt: { $gte: new Date() - 7 * 24 * 60 * 60 * 1000 },
   });
 
   const tasksLastWeek = await Task.find({
-    _id: user.tasks,
-    area: area ? area : { $in: user.areas },
+    _id: userRole == "admin" ? user.tasks : adminUser.tasks,
+    area: area ? area : { $in: userRole == "admin" ? user.areas : adminUser.areas },
     createdAt: { $gte: new Date() - 7 * 24 * 60 * 60 * 1000 },
   })
     .sort({ createdAt: -1 })

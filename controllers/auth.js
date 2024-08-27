@@ -33,8 +33,13 @@ export const signIn = asyncHandler(async (req, res, next) => {
 
   if (found.status === "inactive") throw new ErrorResponse("User is inactive", 401);
 
-  const token = jwt.sign({ userId: found._id, email, role: found.role }, process.env.JWT_SECRET, { expiresIn: tokenExpireTime });
-  res.json({ user: { id: found._id, firstName: found.firstName, lastName: found.lastName, email, role: found.role }, token });
+  const token = jwt.sign({ userId: found._id, email, role: found.role }, process.env.JWT_SECRET, {
+    expiresIn: tokenExpireTime,
+  });
+  res.json({
+    user: { id: found._id, adminUserId: found.adminUserId, firstName: found.firstName, lastName: found.lastName, email, role: found.role },
+    token,
+  });
 });
 
 export const me = asyncHandler(async (req, res, next) => {
@@ -42,5 +47,7 @@ export const me = asyncHandler(async (req, res, next) => {
   const user = await User.findById(userId);
 
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
-  res.json({ user: { id: user._id, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role } });
+  res.json({
+    user: { id: user._id, adminUserId: user.adminUserId, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role },
+  });
 });
