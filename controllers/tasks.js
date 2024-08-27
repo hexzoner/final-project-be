@@ -42,7 +42,7 @@ export const getTasks = asyncHandler(async (req, res, next) => {
   };
   userTasks = await Task.find(query)
     .sort({ createdAt: -1 })
-    .populate("area creator", "name firstName lastName email")
+    .populate("area creator assignedTo", "name firstName lastName email")
     .limit(perPage)
     .skip(perPage * (page - 1));
 
