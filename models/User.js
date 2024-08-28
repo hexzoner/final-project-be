@@ -14,6 +14,7 @@ const userSchema = new Schema({
   tasks: [{ type: Schema.Types.ObjectId, ref: "Task" }],
   status: { type: String, enum: ["active", "inactive"], default: "active" },
   createdAt: { type: Date, default: Date.now },
+  profileImage: { type: String },
 });
 
 export default model("User", userSchema);
