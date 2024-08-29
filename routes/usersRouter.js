@@ -10,7 +10,7 @@ const usersRouter = Router();
 usersRouter
   .route("/")
   .get(verifyTokenMiddleware, getUsers)
-  .post(verifyTokenMiddleware, authorize(["admin"]), validateJOI(userSchema.POST), createUser);
+  .post(verifyTokenMiddleware, authorize(["admin", "manager"]), validateJOI(userSchema.POST), createUser);
 
 usersRouter.route("/all").get(getAllUsers);
 
