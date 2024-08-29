@@ -14,6 +14,8 @@ export const getTasks = asyncHandler(async (req, res, next) => {
     query: { status, area, page, perPage },
   } = req;
 
+  const statuses = status ? status.split(",") : ["New", "In Progress", "Finished"];
+
   const userId = req.userId;
   const userRole = req.userRole;
   const user = await User.findById(userId);
@@ -38,7 +40,7 @@ export const getTasks = asyncHandler(async (req, res, next) => {
   const query = {
     _id: userRole == "admin" ? user.tasks : adminUser.tasks,
     $or: [{ assignedTo: { $in: [userId] } }, { area: area ? area : { $in: userAreas } }],
-    status: status ? status : { $in: ["New", "In Progress", "Finished", "Overdue"] },
+    status: status ? statuses : { $in: ["New", "In Progress", "Finished", "Overdue"] },
   };
   userTasks = await Task.find(query)
     .sort({ createdAt: -1 })
@@ -99,7 +101,7 @@ export const createTask = asyncHandler(async (req, res, next) => {
   if (userRole == "manager") {
     adminUser = await User.findById(user.adminUserId);
     if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
-
+    if (!foundArea.adminId) throw new ErrorResponse("Invalid Area - no adminId found", 404);
     if (foundArea.adminId.toString() != adminUser._id.toString()) throw new ErrorResponse("Not authorized 2 - area belongs to another user", 401);
     adminId = adminUser._id;
   } else if (userRole == "admin") {
@@ -151,7 +153,10 @@ export const updateTask = asyncHandler(async (req, res, next) => {
   if (priority) task.priority = priority;
   if (status) {
     task.status = status;
-    if (status == "Finished") task.finishedDate = Date.now();
+    if (status == "Finished") {
+      task.finishedDate = Date.now();
+      if (Date.now() > task.dueDate) task.isOverdue = true;
+    }
     if (status == "In Progress") task.startedDate = Date.now();
     if (status == "New") {
       task.finishedDate = null;
