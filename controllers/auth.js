@@ -17,7 +17,7 @@ export const signUp = asyncHandler(async (req, res, next) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = await User.create({ firstName, lastName, email, password: hashedPassword, role });
   const token = jwt.sign({ userId: user._id, email, role }, process.env.JWT_SECRET, { expiresIn: tokenExpireTime });
-  res.json({ user: { id: user._id, firstName, lastName, email, role, createdAt: user.createdAt }, token });
+  res.json({ user: { id: user._id, firstName, lastName, email, role, createdAt: user.createdAt, profileImage: user.profileImage }, token });
 });
 
 export const signIn = asyncHandler(async (req, res, next) => {
@@ -37,7 +37,15 @@ export const signIn = asyncHandler(async (req, res, next) => {
     expiresIn: tokenExpireTime,
   });
   res.json({
-    user: { id: found._id, adminUserId: found.adminUserId, firstName: found.firstName, lastName: found.lastName, email, role: found.role },
+    user: {
+      id: found._id,
+      adminUserId: found.adminUserId,
+      firstName: found.firstName,
+      lastName: found.lastName,
+      email,
+      role: found.role,
+      profileImage: found.profileImage,
+    },
     token,
   });
 });
@@ -48,6 +56,14 @@ export const me = asyncHandler(async (req, res, next) => {
 
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
   res.json({
-    user: { id: user._id, adminUserId: user.adminUserId, firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role },
+    user: {
+      id: user._id,
+      adminUserId: user.adminUserId,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      profileImage: user.profileImage,
+    },
   });
 });

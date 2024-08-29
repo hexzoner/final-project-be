@@ -153,6 +153,10 @@ export const updateTask = asyncHandler(async (req, res, next) => {
     task.status = status;
     if (status == "Finished") task.finishedDate = Date.now();
     if (status == "In Progress") task.startedDate = Date.now();
+    if (status == "New") {
+      task.finishedDate = null;
+      task.startedDate = null;
+    }
   }
   if (dueDate) task.dueDate = dueDate;
   if (finishedDate) task.finishedDate = finishedDate;
