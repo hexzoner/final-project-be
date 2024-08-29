@@ -27,9 +27,11 @@ export const getStats = asyncHandler(async (req, res, next) => {
 
   const remaining = userTasks.filter((x) => x.status == "New");
   const recordsToday = userTasks.filter((x) => new Date(x.createdAt).toLocaleDateString() == new Date().toLocaleDateString());
-  const finishedTasks = userTasks.filter((x) => x.status == "Finished");
-  const onTimeRate = finishedTasks.length / (finishedTasks.length + userTasks.filter((x) => x.status == "Overdue").length);
-  // const hoursWorked = userTasks.reduce((hours, x) => hours + (x.finishedDate - x.createdAt), 0);
+  const finishedTotal = userTasks.filter((x) => x.status == "Finished").length;
+  const finishedOnTime = userTasks.filter((x) => x.status == "Finished" && x.isOverdue == false).length;
+  // const finishedOverDue = userTasks.filter((x) => x.status == "Finished" && x.isOverdue == true);
+
+  const onTimeRate = (finishedOnTime / finishedTotal) * 100;
 
   let hoursWorked = 0;
   for (let i = 0; i < userTasks.length; i++) {

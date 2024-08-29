@@ -9,7 +9,7 @@ const taskSchema = new Schema({
   assignedTo: [{ type: Schema.Types.ObjectId, ref: "User" }],
   status: {
     type: String,
-    enum: ["New", "Finished", "Overdue", "In Progress"],
+    enum: ["New", "Finished", "In Progress"],
     default: "New",
   },
   priority: { type: String, enum: ["High", "Medium", "Low"], default: "Medium" },
@@ -18,6 +18,7 @@ const taskSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
   startedDate: { type: Date, default: null },
   finishedDate: { type: Date, default: null },
+  isOverdue: { type: Boolean, default: false },
 });
 
 export default model("Task", taskSchema);
