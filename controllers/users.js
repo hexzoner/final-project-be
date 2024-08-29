@@ -52,12 +52,16 @@ export const createUser = asyncHandler(async (req, res, next) => {
 
   // Manager tries to create a new user, so we need to find his adminId to assign it to the new user
   let adminId = null;
+  let adminUser = null;
   if (userRole == "manager") {
     if (!user.adminUserId) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
-    const adminUser = await User.findById(user.adminUserId);
+    adminUser = await User.findById(user.adminUserId);
     if (!adminUser) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
     adminId = adminUser._id;
   }
+
+  const alreadyExists = await User.findOne({ email });
+  if (alreadyExists) throw new ErrorResponse("Email already exists", 400);
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const adminUserId = userRole == "admin" ? userId : adminId;
@@ -73,10 +77,15 @@ export const createUser = asyncHandler(async (req, res, next) => {
     adminUserId,
   });
 
-  user.staff.push(newUser);
-  user.save();
+  if (userRole == "admin") {
+    user.staff.push(newUser);
+    user.save();
+  } else {
+    adminUser.staff.push(newUser);
+    adminUser.save();
+  }
 
-  res.json({ adminUserId, firstName, lastName, email, role, creator: user, status: "active", createdAt: newUser.createdAt });
+  res.json({ _id: newUser._id, adminUserId, firstName, lastName, email, role, creator: user, status: "active", createdAt: newUser.createdAt });
 });
 
 export const updateUser = asyncHandler(async (req, res, next) => {
