@@ -156,7 +156,7 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
   const userToDelete = await User.findById(id);
   if (!userToDelete) throw new ErrorResponse("User doesnt exist", 404);
 
-  if (userRole == "admin" && userToDelete._id.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
+  if (userRole == "admin" && !user.staff.includes(id)) throw new ErrorResponse("Not authorized", 401);
   if (userRole == "manager") {
     if (!user.adminUserId) throw new ErrorResponse("This account doesnt have a AdminUserId", 404);
     const adminUser = await User.findById(user.adminUserId);
