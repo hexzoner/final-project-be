@@ -67,3 +67,7 @@ export const me = asyncHandler(async (req, res, next) => {
     },
   });
 });
+
+export const refresh = asyncHandler(async (req, res, next) => {
+  res.json({ message: "OK" });
+});
