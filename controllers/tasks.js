@@ -82,7 +82,7 @@ export const getTaskById = asyncHandler(async (req, res, next) => {
 
 export const createTask = asyncHandler(async (req, res, next) => {
   const {
-    body: { title, description, area, priority, dueDate, status, finishedDate, assignedTo },
+    body: { title, description, area, priority, dueDate, status, finishedDate, assignedTo, steps },
   } = req;
   const userId = req.userId;
   const userRole = req.userRole;
@@ -108,7 +108,7 @@ export const createTask = asyncHandler(async (req, res, next) => {
     adminId = userId;
   } else throw new ErrorResponse("Not authorized - only admin or manager can create tasks", 401);
 
-  const task = await Task.create({ adminId, creator: userId, title, description, area, priority, dueDate, status, finishedDate, assignedTo });
+  const task = await Task.create({ adminId, creator: userId, title, description, area, priority, dueDate, status, finishedDate, assignedTo, steps });
 
   if (userRole == "admin") {
     user.tasks.push(task);
@@ -124,7 +124,7 @@ export const createTask = asyncHandler(async (req, res, next) => {
 export const updateTask = asyncHandler(async (req, res, next) => {
   const {
     params: { id },
-    body: { title, description, area, priority, dueDate, status, finishedDate, assignedTo },
+    body: { title, description, area, priority, dueDate, status, finishedDate, assignedTo, steps },
   } = req;
   const userId = req.userId;
   const role = req.userRole;
@@ -151,6 +151,8 @@ export const updateTask = asyncHandler(async (req, res, next) => {
     task.area = area;
   }
   if (priority) task.priority = priority;
+  if (steps) task.steps = steps;
+
   if (status) {
     task.status = status;
     if (status == "Finished") {
