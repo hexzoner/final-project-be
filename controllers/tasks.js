@@ -136,11 +136,9 @@ export const updateTask = asyncHandler(async (req, res, next) => {
 
   if (!task.adminId) throw new ErrorResponse("Invalid Task - no adminId found", 404);
 
-  if (role == "admin" && task.adminId.toString() !== userId) throw new ErrorResponse("Not authorized (task.creator != userId)", 401);
-  if (role == "staff" || role == "manager") {
-    const userAdmin = await User.findById(user.adminUserId);
-    if (task.adminId.toString() !== userAdmin._id.toString()) throw new ErrorResponse("Not authorized (task.creator != userAdmin)", 401);
-  }
+  if (role == "admin" && task.adminId.toString() !== userId) throw new ErrorResponse("Not authorized (task.admin != userId)", 401);
+  if ((role == "staff" || role == "manager") && task.adminId.toString() !== user.adminUserId.toString())
+    throw new ErrorResponse("Not authorized (task.admin != userAdmin)", 401);
 
   if (title) task.title = title;
   if (description) task.description = description;
@@ -179,13 +177,17 @@ export const deleteTask = asyncHandler(async (req, res, next) => {
   } = req;
 
   const userId = req.userId;
+  const role = req.userRole;
   const user = await User.findById(userId);
   if (!user) throw new ErrorResponse("User doesnt exist", 404);
 
   const task = await Task.findById(id);
   if (!task) throw new ErrorResponse("Task doesnt exist", 404);
+  if (!task.adminId) throw new ErrorResponse("Invalid Task - no adminId found", 404);
 
-  if (task.creator.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
+  if (role == "admin" && task.adminId.toString() !== userId) throw new ErrorResponse("Not authorized (task.adminId != userId)", 401);
+  if (role == "manager" && task.adminId.toString() !== user.adminUserId.toString())
+    throw new ErrorResponse("Not authorized (task.admin != userAdmin)", 401);
 
   await Task.findByIdAndDelete(id);
 
