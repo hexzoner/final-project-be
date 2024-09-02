@@ -19,6 +19,12 @@ const taskSchema = new Schema({
   startedDate: { type: Date, default: null },
   finishedDate: { type: Date, default: null },
   isOverdue: { type: Boolean, default: false },
+  steps: [
+    {
+      description: { type: String },
+      isCompleted: { type: Boolean, default: false },
+    },
+  ],
 });
 
 export default model("Task", taskSchema);
