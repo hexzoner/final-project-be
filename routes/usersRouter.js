@@ -16,7 +16,7 @@ usersRouter.route("/all").get(getAllUsers);
 
 usersRouter
   .route("/:id")
-  .put(verifyTokenMiddleware, authorize(["admin", "manager", "staff"]), updateUser)
+  .put(verifyTokenMiddleware, authorize(["admin", "manager", "staff"]), validateJOI(userSchema.PUT), updateUser)
   .delete(verifyTokenMiddleware, authorize(["admin", "manager"]), deleteUser);
 
 export default usersRouter;
