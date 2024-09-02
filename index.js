@@ -12,6 +12,7 @@ import uploadImageRouter from "./routes/upload-image.js";
 import uploadImageS3Router from "./routes/upload-image-s3.js";
 import path from "path";
 import { imagePath } from "./routes/upload-image-s3.js";
+import chatRouter from './routes/chatRouter.js';
 
 const __dirname = import.meta.dirname;
 
@@ -28,6 +29,7 @@ app.use("/tasks", tasksRouter);
 app.use("/areas", areasRouter);
 app.use("/reports", reportsRouter);
 app.use("/email", emailRouter);
+app.use('/chat', chatRouter);
 app.use("/upload-image", uploadImageRouter);
 app.use("/upload-image-s3", uploadImageS3Router);
 app.use("*", (req, res) => res.status(404).json({ error: "Not found" }));
