@@ -1,6 +1,9 @@
 import OpenAI from 'openai';
 import OpenAIMock from '../utils/OpenAiMock.js';
 import asyncHandler from '../utils/asyncHandler.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export const createChat = asyncHandler(async (req, res) => {
   const {
@@ -11,7 +14,7 @@ export const createChat = asyncHandler(async (req, res) => {
   let openai;
 
   mode === 'production'
-    ? (openai = new OpenAI({ apiKey: process.env.OPEN_AI_APIKEY }))
+    ? (openai = new OpenAI())
     : (openai = new OpenAIMock());
 
   const completion = await openai.chat.completions.create({
