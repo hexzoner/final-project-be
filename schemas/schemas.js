@@ -29,7 +29,7 @@ export const loginSchema = Joi.object({
 export const taskSchema = {
   POST: Joi.object({
     title: Joi.string().required(),
-    description: Joi.string().required(),
+    description: Joi.string().allow("").optional(),
     dueDate: Joi.date().required(),
     priority: Joi.string().required(),
     status: Joi.string().default("New").optional(),
@@ -46,7 +46,7 @@ export const taskSchema = {
   }),
   PUT: Joi.object({
     title: Joi.string().optional(),
-    description: Joi.string().optional(),
+    description: Joi.string().allow("").optional(),
     dueDate: Joi.date().optional(),
     priority: Joi.string().optional(),
     status: Joi.string().optional(),
