@@ -141,7 +141,7 @@ export const updateTask = asyncHandler(async (req, res, next) => {
     throw new ErrorResponse("Not authorized (task.admin != userAdmin)", 401);
 
   if (title) task.title = title;
-  if (description) task.description = description;
+  if (description || description === "") task.description = description;
 
   if (area) {
     const foundArea = await Area.findById(area);
