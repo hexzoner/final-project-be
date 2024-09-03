@@ -117,8 +117,8 @@ export const updateArea = asyncHandler(async (req, res, next) => {
   if (name) area.name = name;
   if (users) area.users = users;
   if (status) area.status = status;
-  if (address) area.address = address;
-  if (contact) area.contact = contact;
+  if (address || address === "") area.address = address;
+  if (contact || contact === "") area.contact = contact;
   await area.save();
 
   const populatedArea = await Area.findById(id).populate("users", "firstName lastName");

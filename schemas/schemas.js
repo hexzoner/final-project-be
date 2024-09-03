@@ -4,6 +4,7 @@ export const userSchema = {
   POST: Joi.object({
     firstName: Joi.string().allow("").optional(),
     lastName: Joi.string().allow("").optional(),
+    phone: Joi.string().allow("").optional(),
     email: Joi.string().required(),
     password: Joi.string().min(4).max(12).required(),
     role: Joi.string().required(),
@@ -15,8 +16,11 @@ export const userSchema = {
   PUT: Joi.object({
     firstName: Joi.string().allow("").optional(),
     lastName: Joi.string().allow("").optional(),
+    phone: Joi.string().allow("").optional(),
     email: Joi.string().optional(),
     password: Joi.string().min(4).max(12).optional(),
+    newPassword: Joi.string().min(4).max(12).allow("").optional(),
+    currentPassword: Joi.string().min(4).max(12).allow("").optional(),
     role: Joi.string().optional(),
   }),
 };

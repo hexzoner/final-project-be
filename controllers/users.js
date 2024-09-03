@@ -41,7 +41,7 @@ export const getUsers = asyncHandler(async (req, res, next) => {
 
 export const createUser = asyncHandler(async (req, res, next) => {
   const {
-    body: { email, password, firstName, lastName, role },
+    body: { email, password, phone, firstName, lastName, role },
   } = req;
 
   if (role == "admin") throw new ErrorResponse("Only users with role staff or manager can be created", 401);
@@ -72,6 +72,7 @@ export const createUser = asyncHandler(async (req, res, next) => {
     email,
     password: hashedPassword,
     role,
+    phone,
     creator: userId,
     // if the user who creates a new user - is admin, we assign his userId to the new user, otherwise its the manager and we assign the adminId
     adminUserId,
@@ -91,7 +92,7 @@ export const createUser = asyncHandler(async (req, res, next) => {
 export const updateUser = asyncHandler(async (req, res, next) => {
   const {
     params: { id },
-    body: { email, firstName, lastName, role, newPassword, currentPassword },
+    body: { email, firstName, lastName, phone, role, newPassword, currentPassword },
   } = req;
   const userId = req.userId;
   const userRole = req.userRole;
@@ -127,9 +128,11 @@ export const updateUser = asyncHandler(async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     userToEdit.password = hashedPassword;
   }
-  if (firstName) userToEdit.firstName = firstName;
-  if (lastName) userToEdit.lastName = lastName;
+  if (lastName || lastName === "") userToEdit.firstName = firstName;
+  if (lastName || lastName === "") userToEdit.lastName = lastName;
   if (role) userToEdit.role = role;
+  if (phone || phone === "") userToEdit.phone = phone;
+
   userToEdit.save();
 
   res.json({
