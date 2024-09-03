@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import Area from "../models/Area.js";
+import Task from "../models/Task.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ErrorResponse from "../utils/ErrorResponse.js";
 
@@ -38,12 +39,31 @@ export const getAreas = asyncHandler(async (req, res, next) => {
     .limit(perPage)
     .skip(perPage * (page - 1));
 
+  const assignedTasks = await Task.find({ assignedTo: { $in: [userId] } }).populate("area");
+  // const assignedAreas = [...new Set([...assignedTasks.map((task) => task.area), ...userAreas])];
+
+  // Combine userAreas and assignedTasks.map((task) => task.area)
+  const assignedAreas = [...assignedTasks.map((task) => task.area), ...userAreas];
+
+  // Create a Map to store unique areas by their _id
+  const uniqueAreasMap = new Map();
+
+  assignedAreas.forEach((area) => {
+    uniqueAreasMap.set(area._id.toString(), area); // Use area._id as the key
+  });
+
+  // Convert the Map back to an array of areas
+  const uniqueAssignedAreas = Array.from(uniqueAreasMap.values());
+
+  // Sort the uniqueAssignedAreas array by createdAt in descending order (most recent first)
+  uniqueAssignedAreas.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
   totalResults = await Area.countDocuments(query);
 
   if (perPage <= 0) throw new ErrorResponse("Invalid per page number", 400);
   const totalPages = Math.ceil(totalResults / perPage);
 
-  res.json({ areas: userAreas, page, totalResults, totalPages });
+  res.json({ areas: userRole == "staff" ? uniqueAssignedAreas : userAreas, page, totalResults, totalPages });
 });
 
 export const createArea = asyncHandler(async (req, res, next) => {
