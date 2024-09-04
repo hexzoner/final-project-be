@@ -48,7 +48,7 @@ export const getAreas = asyncHandler(async (req, res, next) => {
   // Create a Map to store unique areas by their _id
   const uniqueAreasMap = new Map();
 
-  console.log(assignedAreas);
+  // console.log(assignedAreas);
   assignedAreas.forEach((area) => {
     if (!area) return; // Skip null areas
     uniqueAreasMap.set(area._id.toString(), area); // Use area._id as the key
