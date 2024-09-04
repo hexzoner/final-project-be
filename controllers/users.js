@@ -100,10 +100,8 @@ export const updateUser = asyncHandler(async (req, res, next) => {
   const user = await User.findById(userId);
 
   if (!userToEdit || !user) throw new ErrorResponse("User doesnt exist", 404);
-
   if (userRole == "staff" && userToEdit._id.toString() !== userId) throw new ErrorResponse("Not authorized", 401);
-
-  if (userRole == "admin" && !user.staff.includes(id)) throw new ErrorResponse("Not authorized", 401);
+  if (userRole == "admin" && userToEdit._id.toString() !== userId && !user.staff.includes(id)) throw new ErrorResponse("Not authorized", 401);
 
   if (userRole == "manager") {
     if (!user.adminUserId) throw new ErrorResponse("This account doesnt have a valid AdminUserId - not found", 404);
