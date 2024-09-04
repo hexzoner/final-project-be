@@ -1,6 +1,6 @@
 # WBS Coding School Final Project - SnapTask Backend
 
-## Node.js / Express / Mongoose / MongoDB 
+## Node.js / Express / MongoDB / Mongoose
 ![Node.js](https://img.shields.io/badge/Node.js-v14.17.0-green)
 ![Express](https://img.shields.io/badge/Express-v4.17.1-blue)
 ![MongoDB](https://img.shields.io/badge/MongoDB-v4.4.6-brightgreen)
