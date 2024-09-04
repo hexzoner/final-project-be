@@ -1,17 +1,16 @@
 # WBS Coding School Final Project - SnapTask Backend
 
 ## Node.js / Express / Mongoose / MongoDB 
+![Node.js](https://img.shields.io/badge/Node.js-v14.17.0-green)
+![Express](https://img.shields.io/badge/Express-v4.17.1-blue)
+![MongoDB](https://img.shields.io/badge/MongoDB-v4.4.6-brightgreen)
+![Mongoose](https://img.shields.io/badge/Mongoose-v5.12.7-red)
 
 ## API Docs
 https://documenter.getpostman.com/view/36668209/2sA3s7k9jy
 
 ## Frontend Repo 
 https://github.com/SebSchoeneberger/Final-Project-Fe
-
-![Node.js](https://img.shields.io/badge/Node.js-v14.17.0-green)
-![Express](https://img.shields.io/badge/Express-v4.17.1-blue)
-![MongoDB](https://img.shields.io/badge/MongoDB-v4.4.6-brightgreen)
-![Mongoose](https://img.shields.io/badge/Mongoose-v5.12.7-red)
 
 ## Overview
 
