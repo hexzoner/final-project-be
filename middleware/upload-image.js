@@ -14,7 +14,7 @@ export const uploadImage = async (req, res, next) => {
   const user = await User.findById(userId);
 
   if (user === null) return res.status(404).json({ error: "User not found", message: "User not found" });
-  console.log(user.profileImage);
+  // console.log(user.profileImage);
   if (user.profileImage) {
     const oldImage = user.profileImage;
     // Remove the old image file
@@ -45,7 +45,7 @@ export const uploadImage = async (req, res, next) => {
 export function imageValidation(req, res, next) {
   // console.log("Image validation: ", req);
   const imageFile = req.file;
-  console.log("Image validation: ", imageFile);
+  // console.log("Image validation: ", imageFile);
   if (imageFile === undefined) return res.status(400).json({ error: "File not found", message: "Please select file to upload" });
   if (imageFile.mimetype.split("/")[0] !== "image") return res.status(400).json({ error: "Non image", message: "File is not an image" });
   if (imageFile.size > 1000000) return res.status(400).json({ error: "Too large", message: "File is too large. Max size is 1MB" });
