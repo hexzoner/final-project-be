@@ -56,6 +56,7 @@ export const taskSchema = {
     status: Joi.string().optional(),
     assignedTo: Joi.array().items(Joi.string()).optional(),
     area: Joi.string().optional(),
+    finishedDate: Joi.date().optional(),
     steps: Joi.array()
       .items(
         Joi.object().keys({
