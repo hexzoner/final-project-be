@@ -24,7 +24,6 @@ SnapTask is a task management platform that streamlines the assignment and track
 ## Table of Contents
 
 - [Installation](#installation)
-- [Usage](#usage)
 - [Environment Variables](#environment-variables)
 - [Project Structure](#project-structure)
 - [API docs](#api-docs)
@@ -98,6 +97,50 @@ AWS_S3_BUCKET_NAME=your_aws_s3_bucket_name
 SMTP_USER=
 SMTP_PASS=
 EMAIL_FROM=
+```
+## Project Structure 
+
+```
+├── controllers        # Application logic (controllers)
+│   ├── areas.js
+│   ├── auth.js
+│   ├── chat.js
+│   ├── email.js
+│   ├── reports.js
+│   ├── tasks.js
+│   └── users.js
+├── db                 # Database-related files
+│   └── index.js
+├── middleware         # Custom middleware functions
+│   ├── authorize.js
+│   ├── errorHandler.js
+│   ├── isOwner.js
+│   ├── upload-image-s3.js
+│   ├── upload-image.js
+│   ├── validateJOI.js
+│   └── verifyToken.js
+├── models             # Database models
+│   ├── Area.js
+│   ├── Task.js
+│   └── User.js
+├── routes             # API routes
+│   ├── areasRouter.js
+│   ├── authRouter.js
+│   ├── chatRouter.js
+│   ├── emailRouter.js
+│   ├── reportsRouter.js
+│   ├── tasksRouter.js
+│   ├── upload-image-s3.js
+│   ├── upload-image.js
+│   └── usersRouter.js
+├── schemas            # Data validation schemas (e.g., for request body)
+│   └── schemas.js
+├── utils              # Utility functions
+│   ├── asyncHandler.js
+│   ├── emailService.js
+│   ├── ErrorResponse.js
+│   └── OpenAiMock.js
+└── index.js           # Entry point of the application
 ```
 
 ## API Docs
