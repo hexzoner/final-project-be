@@ -40,7 +40,7 @@ SnapTask is a task management platform that streamlines the assignment and track
 
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/yourusername/snap-task-backend.git
+    git clone https://github.com/hexzoner/final-project-be.git
     cd snap-task-backend
     ```
 
