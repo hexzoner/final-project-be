@@ -6,9 +6,6 @@
 ![MongoDB](https://img.shields.io/badge/MongoDB-v4.4.6-brightgreen)
 ![Mongoose](https://img.shields.io/badge/Mongoose-v5.12.7-red)
 
-## API Docs
-https://documenter.getpostman.com/view/36668209/2sA3s7k9jy
-
 ## Frontend Repo 
 https://github.com/SebSchoeneberger/Final-Project-Fe
 
@@ -29,10 +26,9 @@ SnapTask is a task management platform that streamlines the assignment and track
 - [Installation](#installation)
 - [Usage](#usage)
 - [Environment Variables](#environment-variables)
-- [Technologies](#technologies)
 - [Project Structure](#project-structure)
-
-
+- [API docs](#api-docs)
+  
 ## Installation
 
 ### Prerequisites
@@ -59,7 +55,7 @@ SnapTask is a task management platform that streamlines the assignment and track
     - Add the following environment variables:
       ```env
       PORT=5000
-      MONGODB_URI=mongodb://localhost:27017/snaptask
+      MONGODB_URI=mongodb://your_connection_string
       JWT_SECRET=your_secret_key
       ```
 
@@ -102,3 +98,38 @@ AWS_S3_BUCKET_NAME=your_aws_s3_bucket_name
 SMTP_USER=
 SMTP_PASS=
 EMAIL_FROM=
+```
+
+## API Docs
+[https://documenter.getpostman.com/view/36668209/2sA3s7k9jy](https://documenter.getpostman.com/view/36668209/2sA3s7k9jy)
+
+### Auth
+- **POST** `/auth/signup` - Creates new user account.
+- **POST** `/auth/login` - Authenticates the user.
+- **GET** `/auth/me` - Get the logged-in user data.
+
+### Areas
+- **GET** `/areas` - Get account areas based on the token
+- **POST** `/areas` - Creates new area
+- **PUT** `/areas/:id` - Update an existing area
+- **DELETE** `/areas/:id` - Deletes an area
+
+### Users
+- **GET** `/users?page=1&perPage=5` - Get the users associated with the account based on the user token
+- **POST** `/users` - Creates new user for this account
+- **PUT** `/users/:id` - Updates an existing user 
+- **DELETE** `/users/:id` - Deletes an existing user
+
+### Tasks
+- **GET** `/tasks?page=1&perPage=10&status=New,In Progress` - Get user tasks based on the token
+- **GET** `/tasks/:id` - Get task details by ID 
+- **POST** `/tasks` - Creates new task
+- **PUT** `/tasks/:id` - Updates an existing task
+- **DELETE** `/tasks/:id` - Deletes the task
+
+### Reports / Stats
+- **GET** `/reports/dashboard/stats?area=66c458509e97a03372944042` - Get dashboard stats (all or for specific area)
+- **GET** `/reports/dashboard/weeklyTasks?page=1&perPage=5` - Get weekly tasks
+
+### Email
+- **POST** `/email/invitation` - Sends invitation email
