@@ -11,15 +11,14 @@ https://github.com/SebSchoeneberger/Final-Project-Fe
 
 ## Overview
 
-SnapTask is a task management platform that streamlines the assignment and tracking of tasks for different areas within an organization. This repository contains the backend code for SnapTask, which is built using Node.js, Express, MongoDB, and Mongoose.
+SnapTask is a versatile SaaS platform that uses QR code technology to streamline task management for businesses and households. This repository contains the frontend code for SnapTask, built using React, Vite, and Tailwind CSS. The platform provides a comprehensive admin dashboard for managing tasks, users, and areas, while also offering a mobile-friendly interface for staff to easily interact with tasks.
 
 ## Features
 
-- **User Management**: Admin and Manager roles can create and manage users.
-- **Area Management**: Create and manage areas for organizing tasks.
-- **Task Management**: Assign tasks to specific areas and users. Track the status of tasks in real-time.
-- **QR Code Integration**: Generate and print QR codes for tasks, which can be scanned by staff to quickly access task details.
-- **Reporting**: Generate performance and activity reports.
+- **Admin Dashboard**: Manage areas, users, tasks, and generate reports through a web-based interface.
+- **Staff Interface**: Staff can easily start and finish tasks by scanning unique QR codes using their mobile devices.
+- **Versatile Use Cases**: Ideal for industries such as cleaning, logistics, and hospitality, as well as for shared households.
+- **Detailed Analytics**: Gain insights into task completion rates and other performance metrics.
 
 ## Table of Contents
 
