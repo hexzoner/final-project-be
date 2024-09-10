@@ -11,7 +11,7 @@ https://github.com/SebSchoeneberger/Final-Project-Fe
 
 ## Overview
 
-SnapTask is a versatile SaaS platform that uses QR code technology to streamline task management for businesses and households. This repository contains the frontend code for SnapTask, built using React, Vite, and Tailwind CSS. The platform provides a comprehensive admin dashboard for managing tasks, users, and areas, while also offering a mobile-friendly interface for staff to easily interact with tasks.
+SnapTask is a versatile SaaS platform that uses QR code technology to streamline task management for businesses and households. This repository contains the backend code for SnapTask. The platform provides a comprehensive admin dashboard for managing tasks, users, and areas, while also offering a mobile-friendly interface for staff to easily interact with tasks.
 
 ## Features
 
